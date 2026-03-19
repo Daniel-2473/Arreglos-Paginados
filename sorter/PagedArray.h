@@ -10,19 +10,22 @@ using namespace std;
 
 class PagedArray {
 private:
-    int** pages;
+    int** frames;
     int pageCount;
     int pageSize;
     string outputFilePath;
     string inputFilePath;
     int* usedPages;
+    int firstInPage = 0;
+    bool framesFull;
 
 public:
-    PagedArray(int pageSize, int pageCount, string outputFilePath, string inputFilePath);
+    PagedArray(int pageSize, int pageCount, string outputFilePath);
     int& operator[](int index);
     int& PageHit(int frame, int pageIndex);
-    void PageFault();
-
+    int& PageFault(int page, int pageIndex);
+    int CalculateFreeFrame();
+    int& LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex);
 };
 
 #endif //SORTER_PAGEDARRAY_H
