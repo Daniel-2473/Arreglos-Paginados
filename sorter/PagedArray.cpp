@@ -42,19 +42,22 @@ int& PagedArray::PageHit(int frame, int pageIndex) {
 int& PagedArray::PageFault(int page, int pageIndex) {
     if (!framesFull) {
         int freeFrame = CalculateFreeFrame();
-        LoadPage(freeFrame, page, pageIndex);
+        return LoadPage(freeFrame, page, pageIndex);
     }
+    return LoadPageNoSpace(oldestFrame,page, pageIndex);
 }
 
 int PagedArray::CalculateFreeFrame() {
     for (int i = 0; i < pageCount; i++) {
         if (usedPages[i] == -1) {
-            if (pageCount == i-1) {
+            if (pageCount - 1 == i) {
                 framesFull = true;
             }
             return i;
         }
     }
+    printf("Error al calcular frame\n");
+    return -1;
 }
 
 int& PagedArray::LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex) {
@@ -68,6 +71,37 @@ int& PagedArray::LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex) {
         printf("Lectura incompleta\n");
     }
     fclose(file);
+    usedPages[frameToLoadIn] = pageToLoad;
+    return frames[frameToLoadIn][pageIndex];
+}
+
+int &PagedArray::LoadPageNoSpace(int frameToLoadIn, int pageToLoad, int pageIndex) {
+    FILE* file = fopen(outputFilePath.c_str(), "rb+");
+    if (file == NULL) {
+        printf("Error al abrir archivo\n");
+    }
+    fseek(file, usedPages[frameToLoadIn] * pageSize * sizeof(int), SEEK_SET);
+
+    size_t written = fwrite(frames[frameToLoadIn], sizeof(int), pageSize, file);
+
+    if (written != pageSize) {
+        printf("Escritura incompleta\n");
+    }
+
+    fseek(file, pageToLoad * pageSize * sizeof(int), SEEK_SET);
+
+    size_t read = fread(frames[frameToLoadIn], sizeof(int), pageSize, file);
+
+    if (read != pageSize) {
+        printf("Lectura incompleta\n");
+    }
+
+    fclose(file);
+    usedPages[frameToLoadIn] = pageToLoad;
+    oldestFrame++;
+    if (oldestFrame >= pageCount) {
+        oldestFrame = 0;
+    }
     return frames[frameToLoadIn][pageIndex];
 }
 

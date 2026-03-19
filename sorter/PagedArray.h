@@ -18,6 +18,7 @@ private:
     int* usedPages;
     int firstInPage = 0;
     bool framesFull;
+    int oldestFrame = 0;
 
 public:
     PagedArray(int pageSize, int pageCount, string outputFilePath);
@@ -26,6 +27,7 @@ public:
     int& PageFault(int page, int pageIndex);
     int CalculateFreeFrame();
     int& LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex);
+    int& LoadPageNoSpace(int frameToLoadIn, int pageToLoad, int pageIndex);
 };
 
 #endif //SORTER_PAGEDARRAY_H
