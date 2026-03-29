@@ -28,6 +28,7 @@ public:
     int CalculateFreeFrame();
     int& LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex);
     int& LoadPageNoSpace(int frameToLoadIn, int pageToLoad, int pageIndex);
+    void LoadPagesFinal();
 };
 
 #endif //SORTER_PAGEDARRAY_H

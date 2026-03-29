@@ -105,5 +105,18 @@ int &PagedArray::LoadPageNoSpace(int frameToLoadIn, int pageToLoad, int pageInde
     return frames[frameToLoadIn][pageIndex];
 }
 
+void PagedArray::LoadPagesFinal() {
+    FILE* file = fopen(outputFilePath.c_str(), "rb+");
+    if (file == NULL) {
+        printf("Error al abrir archivo\n");
+    }
+    for (int i = 0; i < pageCount; i++) {
+
+        fseek(file, usedPages[i] * pageSize * sizeof(int), SEEK_SET);
+        size_t written = fwrite(frames[i], sizeof(int), pageSize, file);
+    }
+    fclose(file);
+}
+
 
 
