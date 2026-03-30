@@ -13,22 +13,24 @@ private:
     int** frames;
     int pageCount;
     int pageSize;
-    string outputFilePath;
-    string inputFilePath;
+    FILE* outputFile;
     int* usedPages;
     int firstInPage = 0;
     bool framesFull;
     int oldestFrame = 0;
-
-public:
-    PagedArray(int pageSize, int pageCount, string outputFilePath);
-    int& operator[](int index);
     int& PageHit(int frame, int pageIndex);
     int& PageFault(int page, int pageIndex);
     int CalculateFreeFrame();
-    int& LoadPage(int frameToLoadIn, int pageToLoad, int pageIndex);
-    int& LoadPageNoSpace(int frameToLoadIn, int pageToLoad, int pageIndex);
-    void LoadPagesFinal();
+    bool CheckPage(int& frame, int page);
+    void IncreaseOldestFrame();
+    void LoadPage(int frameToLoadIn, int pageToLoad);
+    void WriteFrame(int frame);
+
+public:
+    PagedArray(int pageSize, int pageCount, char* outputFilePath);
+    int& operator[](int index);
+    void WriteAllFrames();
+    int GetSize();
 };
 
 #endif //SORTER_PAGEDARRAY_H
