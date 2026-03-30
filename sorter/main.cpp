@@ -2,7 +2,8 @@
 #include <iostream>
 #include <string>
 #include "PagedArray.h"
-#include <vector>
+#include <string.h>
+#include <chrono>
 
 using namespace std;
 
@@ -86,60 +87,63 @@ void heapSort(PagedArray& arr, int size) {
     }
 }
 
-void merge(PagedArray& arr, int left, int mid, int right) {
+void merge(PagedArray& arr, int left, int mid, int right, int temp_arr[]) {
+    int i, j, k;
     int n1 = mid - left + 1;
     int n2 = right - mid;
 
-    // Create temporary vectors to hold the sub-array data
-    vector<int> L(n1);
-    vector<int> R(n2);
+    // Copy data to the temporary array
+    for (i = 0; i < n1; i++) {
+        temp_arr[left + i] = arr[left + i];
+    }
+    for (j = 0; j < n2; j++) {
+        temp_arr[mid + 1 + j] = arr[mid + 1 + j];
+    }
 
-    // Copy data to temp arrays L[] and R[]
-    for (int i = 0; i < n1; i++)
-        L[i] = arr[left + i];
-    for (int j = 0; j < n2; j++)
-        R[j] = arr[mid + 1 + j];
+    i = 0; // Initial index of first sub-array
+    j = 0; // Initial index of second sub-array
+    k = left; // Initial index of merged array
 
-    // Merge the temp arrays back into arr[left..right]
-    int i = 0, j = 0, k = left;
+    // Merge the temp arrays back into arr[left...right]
     while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
-            arr[k] = L[i];
+        if (temp_arr[left + i] <= temp_arr[mid + 1 + j]) {
+            arr[k] = temp_arr[left + i];
             i++;
         } else {
-            arr[k] = R[j];
+            arr[k] = temp_arr[mid + 1 + j];
             j++;
         }
         k++;
     }
 
-    // Copy the remaining elements of L[], if any
+    // Copy the remaining elements of the first sub-array, if any
     while (i < n1) {
-        arr[k] = L[i];
+        arr[k] = temp_arr[left + i];
         i++;
         k++;
     }
 
-    // Copy the remaining elements of R[], if any
+    // Copy the remaining elements of the second sub-array, if any
     while (j < n2) {
-        arr[k] = R[j];
+        arr[k] = temp_arr[mid + 1 + j];
         j++;
         k++;
     }
 }
 
-void mergeSort(PagedArray& arr, int left, int right) {
+void mergeSort(PagedArray& arr, int left, int right, int temp_arr[]) {
     if (left >= right) {
-        return; // Base case: array has 0 or 1 element
+        return; // Base case: single element is already sorted
     }
-    int mid = left + (right - left) / 2; // Find the middle point
+
+    int mid = left + (right - left) / 2; // Avoids potential overflow
 
     // Sort first and second halves
-    mergeSort(arr, left, mid);
-    mergeSort(arr, mid + 1, right);
+    mergeSort(arr, left, mid, temp_arr);
+    mergeSort(arr, mid + 1, right, temp_arr);
 
     // Merge the sorted halves
-    merge(arr, left, mid, right);
+    merge(arr, left, mid, right, temp_arr);
 }
 
 int partition(PagedArray& arr, int low, int high) {
@@ -184,7 +188,28 @@ int CopyFile(char* oldRoute, char* newRoute) {
     return 0;
 }
 
+void RewriteBinaryFile(char* fileRoute) {
+    FILE* binaryFile = fopen(fileRoute, "rb");
+    char outputPath[512];
+    strcpy(outputPath, fileRoute);
+    char* lastSlash = strrchr(outputPath, '/');
+    if (lastSlash != NULL) {
+        *(lastSlash + 1) = '\0';
+    }
+    strcat(outputPath, "sorted.txt");
+    FILE* txtFile = fopen(outputPath, "w");
+    int value, first = 1;
+    while (fread(&value, sizeof(int), 1, binaryFile) == 1) {
+        if (!first) fprintf(txtFile, ",");
+        fprintf(txtFile, "%d", value);
+        first = 0;
+    }
+    fclose(binaryFile);
+    fclose(txtFile);
+}
+
 int sort(char* argv[]) {
+    auto start = chrono::steady_clock::now();
     if (CopyFile(argv[2], argv[4]) != 0) {
         return 1;
     }
@@ -194,7 +219,9 @@ int sort(char* argv[]) {
         quickSort(*arr, 0, arr->GetSize());
     }
     else if (alg == "Merge") {
-        mergeSort(*arr,0, arr->GetSize());
+        int n = arr->GetSize();
+        int* temp_arr = new int[n];
+        mergeSort(*arr,0, arr->GetSize(), temp_arr);
     }
     else if (alg == "Heap") {
         heapSort(*arr, arr->GetSize());
@@ -206,6 +233,13 @@ int sort(char* argv[]) {
         bubbleSort(*arr, arr->GetSize());
     }
     arr->WriteAllFrames();
+    RewriteBinaryFile(argv[4]);
+    auto end = chrono::steady_clock::now();
+    chrono::duration<double> duration = end - start;
+    cout << "Tiempo transcurrido:" << duration.count() << "s" << endl;
+    cout << "Algortimo:" + alg << endl;
+    cout << "Page hits: " + to_string(arr->GetPageHits()) << endl;
+    cout << "Page faults: " + to_string(arr->GetPageFaults()) << endl;
     delete arr;
     return 0;
 }

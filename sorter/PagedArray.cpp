@@ -43,6 +43,7 @@ int& PagedArray::operator[](int index) {
 }
 
 int& PagedArray::PageHit(int frame, int pageIndex) {
+    pageHits++;
     return frames[frame][pageIndex];
 }
 
@@ -55,6 +56,7 @@ int& PagedArray::PageFault(int page, int pageIndex) {
     WriteFrame(oldestFrame);
     LoadPage(oldestFrame, page);
     IncreaseOldestFrame();
+    pageFaults++;
     return frames[oldestFrame-1][pageIndex];
 }
 
@@ -98,6 +100,14 @@ void PagedArray::WriteAllFrames() {
 int PagedArray::GetSize() {
     fseek(outputFile, 0, SEEK_END);
     return ftell(outputFile);
+}
+
+int PagedArray::GetPageFaults() {
+    return pageFaults;
+}
+
+int PagedArray::GetPageHits() {
+    return pageHits;
 }
 
 

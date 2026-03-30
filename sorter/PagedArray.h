@@ -25,12 +25,16 @@ private:
     void IncreaseOldestFrame();
     void LoadPage(int frameToLoadIn, int pageToLoad);
     void WriteFrame(int frame);
+    int pageHits = 0;
+    int pageFaults = 0;
 
 public:
     PagedArray(int pageSize, int pageCount, char* outputFilePath);
     int& operator[](int index);
     void WriteAllFrames();
     int GetSize();
+    int GetPageHits();
+    int GetPageFaults();
 };
 
 #endif //SORTER_PAGEDARRAY_H
