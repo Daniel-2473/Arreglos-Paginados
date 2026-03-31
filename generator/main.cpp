@@ -30,13 +30,13 @@ int checkArgs(int argc, char* argv[]) { //Hacer la validacion del comando en ter
     }
     if (string(argv[1]) == "-size") { //Validar tamano correcto
         if (string(argv[2]) == "SMALL") {
-            fileSize = 512;
+            fileSize = 512/2;
         }
         else if (string(argv[2]) == "MEDIUM") {
-            fileSize = 1024;
+            fileSize = 1024/2;
         }
         else if (string(argv[2]) == "LARGE") {
-            fileSize = 2048;
+            fileSize = 2048/2;
         }
         else {
             cout << "Tamano invalido. Opciones: SMALL, MEDIUM o LARGE" << endl;

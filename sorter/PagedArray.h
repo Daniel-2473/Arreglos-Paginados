@@ -27,14 +27,19 @@ private:
     void WriteFrame(int frame);
     int pageHits = 0;
     int pageFaults = 0;
+    int* lastUsed;
+    int time = 0;
+    string alg;
+    int GetLRUFrame();
 
 public:
-    PagedArray(int pageSize, int pageCount, char* outputFilePath);
+    PagedArray(int pageSize, int pageCount, char* outputFilePath, string alg);
     int& operator[](int index);
     void WriteAllFrames();
     int GetSize();
     int GetPageHits();
     int GetPageFaults();
+    ~PagedArray();
 };
 
 #endif //SORTER_PAGEDARRAY_H

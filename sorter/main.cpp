@@ -87,63 +87,18 @@ void heapSort(PagedArray& arr, int size) {
     }
 }
 
-void merge(PagedArray& arr, int left, int mid, int right, int temp_arr[]) {
-    int i, j, k;
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
-
-    // Copy data to the temporary array
-    for (i = 0; i < n1; i++) {
-        temp_arr[left + i] = arr[left + i];
-    }
-    for (j = 0; j < n2; j++) {
-        temp_arr[mid + 1 + j] = arr[mid + 1 + j];
-    }
-
-    i = 0; // Initial index of first sub-array
-    j = 0; // Initial index of second sub-array
-    k = left; // Initial index of merged array
-
-    // Merge the temp arrays back into arr[left...right]
-    while (i < n1 && j < n2) {
-        if (temp_arr[left + i] <= temp_arr[mid + 1 + j]) {
-            arr[k] = temp_arr[left + i];
-            i++;
-        } else {
-            arr[k] = temp_arr[mid + 1 + j];
-            j++;
+void selectionSort(PagedArray& arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        // Find the minimum element in the unsorted array
+        int min_idx = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_idx]) {
+                min_idx = j;
+            }
         }
-        k++;
+        // Swap the found minimum element with the first element of the unsorted part
+        std::swap(arr[min_idx], arr[i]);
     }
-
-    // Copy the remaining elements of the first sub-array, if any
-    while (i < n1) {
-        arr[k] = temp_arr[left + i];
-        i++;
-        k++;
-    }
-
-    // Copy the remaining elements of the second sub-array, if any
-    while (j < n2) {
-        arr[k] = temp_arr[mid + 1 + j];
-        j++;
-        k++;
-    }
-}
-
-void mergeSort(PagedArray& arr, int left, int right, int temp_arr[]) {
-    if (left >= right) {
-        return; // Base case: single element is already sorted
-    }
-
-    int mid = left + (right - left) / 2; // Avoids potential overflow
-
-    // Sort first and second halves
-    mergeSort(arr, left, mid, temp_arr);
-    mergeSort(arr, mid + 1, right, temp_arr);
-
-    // Merge the sorted halves
-    merge(arr, left, mid, right, temp_arr);
 }
 
 int partition(PagedArray& arr, int low, int high) {
@@ -174,8 +129,8 @@ void quickSort(PagedArray& arr, int low, int high) {
 }
 
 int CopyFile(char* oldRoute, char* newRoute) {
-    FILE* newFile = fopen(newRoute, "rb");
-    FILE* oldFile = fopen(oldRoute, "wb");
+    FILE* oldFile = fopen(oldRoute, "rb");
+    FILE* newFile = fopen(newRoute, "wb");
     if (oldFile == NULL || newFile == NULL) {
         cout << "Error al abrir/crear el archivo de salida o entrada" << endl;
         return 1;
@@ -185,6 +140,8 @@ int CopyFile(char* oldRoute, char* newRoute) {
     while ((bytesRead = fread(buffer, 1, sizeof(buffer), oldFile)) > 0) {
         fwrite(buffer, 1, bytesRead, newFile);
     }
+    fclose(oldFile);
+    fclose(newFile);
     return 0;
 }
 
@@ -198,6 +155,10 @@ void RewriteBinaryFile(char* fileRoute) {
     }
     strcat(outputPath, "sorted.txt");
     FILE* txtFile = fopen(outputPath, "w");
+    if (!binaryFile || !txtFile) {
+        cout << "Error abriendo archivos\n";
+        return;
+    }
     int value, first = 1;
     while (fread(&value, sizeof(int), 1, binaryFile) == 1) {
         if (!first) fprintf(txtFile, ",");
@@ -210,18 +171,18 @@ void RewriteBinaryFile(char* fileRoute) {
 
 int sort(char* argv[]) {
     auto start = chrono::steady_clock::now();
+    cout<< "Copiando archivo"<<endl;
     if (CopyFile(argv[2], argv[4]) != 0) {
         return 1;
     }
-    PagedArray* arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4]);
+    PagedArray* arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], string(argv[12]));
     string alg = string(argv[6]);
+    cout<<"Ejecutando algortimo"<<endl;
     if (alg == "Quick") {
-        quickSort(*arr, 0, arr->GetSize());
+        quickSort(*arr, 0, arr->GetSize() - 1);
     }
-    else if (alg == "Merge") {
-        int n = arr->GetSize();
-        int* temp_arr = new int[n];
-        mergeSort(*arr,0, arr->GetSize(), temp_arr);
+    else if (alg == "Selection") {
+        selectionSort(*arr, arr->GetSize());
     }
     else if (alg == "Heap") {
         heapSort(*arr, arr->GetSize());
@@ -232,7 +193,9 @@ int sort(char* argv[]) {
     else {
         bubbleSort(*arr, arr->GetSize());
     }
+    cout<<"Escribiendo todos los frames"<<endl;
     arr->WriteAllFrames();
+    cout<<"Rescribiendo en archivo legible"<<endl;
     RewriteBinaryFile(argv[4]);
     auto end = chrono::steady_clock::now();
     chrono::duration<double> duration = end - start;
@@ -245,7 +208,7 @@ int sort(char* argv[]) {
 }
 
 int checkArgs(int args, char* argv[]) {
-    if (args != 11) {
+    if (args != 13 && args != 11) {
         cout << "Comando invalido" << endl;
         return 1;
     }
@@ -260,7 +223,7 @@ int checkArgs(int args, char* argv[]) {
     if (string(argv[5]) != "-alg") {
         cout << "Debe especificar algortimo" << endl;
         cout << "Opciones:" << endl;
-        cout << "Merge" << endl;
+        cout << "Selection" << endl;
         cout << "Quick" << endl;
         cout << "Heap" << endl;
         cout << "Insertion" << endl;
@@ -268,9 +231,20 @@ int checkArgs(int args, char* argv[]) {
         return 1;
     }
     string algoritmo = argv[6];
-    if (algoritmo != "Merge" && algoritmo != "Quick" && algoritmo != "Heap" && algoritmo != "Insertion" && algoritmo != "Bubble") {
+    if (algoritmo != "Selection" && algoritmo != "Quick" && algoritmo != "Heap" && algoritmo != "Insertion" && algoritmo != "Bubble") {
         cout << "Algoritmo invalido" << endl;
         return 1;
+    }
+    if (args == 13) {
+        if (string(argv[11]) != "-algRemp") {
+            cout << "formato invalido" << endl;
+            return 1;
+        }
+        string algoritmoRemplazo = argv[12];
+        if (algoritmoRemplazo != "FIFO" && algoritmoRemplazo != "LRU") {
+            cout << "Algoritmp de remplazo invalido" << endl;
+            return 1;
+        }
     }
     if (string(argv[7]) != "-pageSize") {
         cout << "Debe especificar el tamaño de página" << endl;
