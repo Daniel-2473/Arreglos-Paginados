@@ -71,20 +71,24 @@ void heapify(PagedArray& arr, int n, int i) {
 void heapSort(PagedArray& arr, int size) {
     int n = size;
 
-    // Build a max-heap (rearrange array)
-    // Start from the last non-leaf node (n/2 - 1) up to the root (0)
+    // Build heap
     for (int i = n / 2 - 1; i >= 0; i--) {
         heapify(arr, n, i);
     }
 
-    // One by one extract an element from the heap
+    // Sorting phase
     for (int i = n - 1; i > 0; i--) {
-        // Move current root (largest element) to the end
         swap(arr[0], arr[i]);
-
-        // Call max heapify on the reduced heap
         heapify(arr, i, 0);
+
+        // 👇 PROGRESO
+        if (i % (n / 100) == 0) { // cada 1%
+            int progress = ((n - i) * 100) / n;
+            cout << "\rProgreso: " << progress << "%" << flush;
+        }
     }
+
+    cout << "\rProgreso: 100%\n";
 }
 
 void selectionSort(PagedArray& arr, int n) {
@@ -185,19 +189,19 @@ int sort(int args, char* argv[]) {
     string alg = string(argv[6]);
     cout<<"Ejecutando algortimo"<<endl;
     if (alg == "Quick") {
-        quickSort(*arr, 0, arr->GetSize() - 1);
+        quickSort(*arr, 0, arr->size - 1);
     }
     else if (alg == "Selection") {
-        selectionSort(*arr, arr->GetSize());
+        selectionSort(*arr, arr->size);
     }
     else if (alg == "Heap") {
-        heapSort(*arr, arr->GetSize());
+        heapSort(*arr, arr->size);
     }
     else if (alg == "Insertion") {
-        insertionSort(*arr, arr->GetSize());
+        insertionSort(*arr, arr->size);
     }
     else {
-        bubbleSort(*arr, arr->GetSize());
+        bubbleSort(*arr, arr->size);
     }
     cout<<"Escribiendo todos los frames"<<endl;
     arr->WriteAllFrames();

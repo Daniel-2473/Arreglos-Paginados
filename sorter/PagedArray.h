@@ -25,18 +25,20 @@ private:
     void IncreaseOldestFrame();
     void LoadPage(int frameToLoadIn, int pageToLoad);
     void WriteFrame(int frame);
-    int pageHits = 0;
-    int pageFaults = 0;
-    int* lastUsed;
-    int time = 0;
+    long long pageHits = 0;
+    long long pageFaults = 0;
+    long long* lastUsed;
+    long long time = 0;
     string alg;
     int GetLRUFrame();
+    int GetSize();
+    int* pageToFrame;
 
 public:
     PagedArray(int pageSize, int pageCount, char* outputFilePath, string alg);
     int& operator[](int index);
     void WriteAllFrames();
-    int GetSize();
+    int size;
     int GetPageHits();
     int GetPageFaults();
     ~PagedArray();

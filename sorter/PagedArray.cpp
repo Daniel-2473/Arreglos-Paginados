@@ -19,7 +19,7 @@ PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, string
         *(usedPages + i) = -1;
     }
     framesFull = false;
-    this-> lastUsed = new int[this->pageCount];
+    this-> lastUsed = new long long[this->pageCount];
     for (int i = 0; i < pageCount; i++) {
         lastUsed[i] = -1;
     }
@@ -28,14 +28,18 @@ PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, string
     this->oldestFrame = 0;
     this->pageHits = 0;
     this->pageFaults = 0;
+    this->size = GetSize();
+    int totalPages = (size + pageSize - 1) / pageSize;
+    this->pageToFrame = new int[totalPages];
+    for (int i = 0; i < totalPages; i++) {
+        pageToFrame[i] = -1;
+    }
 }
 
 bool PagedArray::CheckPage(int &frame, int page) {
-    for (int i=0; i < pageCount; i++) {
-        if (page == usedPages[i]) {
-            frame = i;
-            return true;
-        }
+    if (pageToFrame[page] != -1) {
+        frame = pageToFrame[page];
+        return true;
     }
     return false;
 }
@@ -108,18 +112,19 @@ int PagedArray::CalculateFreeFrame() {
 
 void PagedArray::WriteFrame(int frame) {
     if (usedPages[frame] != -1){
-        int totalSize = GetSize();
+        int totalSize = size;
         int start = usedPages[frame] * pageSize;
         int remaining = totalSize - start;
         int toWrite = (remaining > pageSize) ? pageSize : remaining;
         fseek(outputFile, start * sizeof(int), SEEK_SET);
         fwrite(frames[frame], sizeof(int), toWrite, outputFile);
-        fflush(outputFile);
+        pageToFrame[usedPages[frame]] = -1;
     }
 }
+
 void PagedArray::LoadPage(int frameToLoadIn, int pageToLoad) {
     fseek(outputFile, pageToLoad * pageSize * sizeof(int), SEEK_SET);
-    int totalSize = GetSize();
+    int totalSize = size;
     int start = pageToLoad * pageSize;
     int remaining = totalSize - start;
     int toRead = (remaining > pageSize) ? pageSize : remaining;
@@ -128,6 +133,7 @@ void PagedArray::LoadPage(int frameToLoadIn, int pageToLoad) {
         frames[frameToLoadIn][i] = 0;
     }
     usedPages[frameToLoadIn] = pageToLoad;
+    pageToFrame[pageToLoad] = frameToLoadIn;
 }
 
 void PagedArray::IncreaseOldestFrame() {
