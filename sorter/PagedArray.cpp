@@ -83,9 +83,10 @@ int& PagedArray::PageFault(int page, int pageIndex) {
 }
 
 int PagedArray::GetLRUFrame() {
-    int frame = 0;
-    for (int i = 1; i < pageCount; i++) {
-        if (lastUsed[i] < lastUsed[frame]) {
+    int frame = -1;
+    for (int i = 0; i < pageCount; i++) {
+        if (usedPages[i] == -1) continue; // ignorar frames vacíos
+        if (frame == -1 || lastUsed[i] < lastUsed[frame]) {
             frame = i;
         }
     }
@@ -107,18 +108,24 @@ int PagedArray::CalculateFreeFrame() {
 
 void PagedArray::WriteFrame(int frame) {
     if (usedPages[frame] != -1){
-        fseek(outputFile, usedPages[frame] * pageSize * sizeof(int), SEEK_SET);
-        fwrite(frames[frame], sizeof(int), pageSize, outputFile);
+        int totalSize = GetSize();
+        int start = usedPages[frame] * pageSize;
+        int remaining = totalSize - start;
+        int toWrite = (remaining > pageSize) ? pageSize : remaining;
+        fseek(outputFile, start * sizeof(int), SEEK_SET);
+        fwrite(frames[frame], sizeof(int), toWrite, outputFile);
         fflush(outputFile);
     }
 }
 void PagedArray::LoadPage(int frameToLoadIn, int pageToLoad) {
     fseek(outputFile, pageToLoad * pageSize * sizeof(int), SEEK_SET);
-    size_t read = fread(frames[frameToLoadIn], sizeof(int), pageSize, outputFile);
-    if (read != pageSize) {
-        for (size_t i = read; i < pageSize; i++) {
-            frames[frameToLoadIn][i] = 0;
-        }
+    int totalSize = GetSize();
+    int start = pageToLoad * pageSize;
+    int remaining = totalSize - start;
+    int toRead = (remaining > pageSize) ? pageSize : remaining;
+    size_t read = fread(frames[frameToLoadIn], sizeof(int), toRead, outputFile);
+    for (int i = read; i < pageSize; i++) {
+        frames[frameToLoadIn][i] = 0;
     }
     usedPages[frameToLoadIn] = pageToLoad;
 }

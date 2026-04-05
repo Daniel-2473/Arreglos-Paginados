@@ -169,13 +169,19 @@ void RewriteBinaryFile(char* fileRoute) {
     fclose(txtFile);
 }
 
-int sort(char* argv[]) {
+int sort(int args, char* argv[]) {
     auto start = chrono::steady_clock::now();
     cout<< "Copiando archivo"<<endl;
     if (CopyFile(argv[2], argv[4]) != 0) {
         return 1;
     }
-    PagedArray* arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], string(argv[12]));
+    PagedArray* arr;
+    if (args == 13) {
+        arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], string(argv[12]));
+    }
+    else {
+        arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], "LRU");
+    }
     string alg = string(argv[6]);
     cout<<"Ejecutando algortimo"<<endl;
     if (alg == "Quick") {
@@ -281,5 +287,5 @@ int checkArgs(int args, char* argv[]) {
 
 int main(int args, char* argv[]) {
     if (checkArgs(args, argv) != 0) return 1;
-    return sort(argv);
+    return sort(args,argv);
 }
