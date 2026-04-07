@@ -1,11 +1,12 @@
 #include "PagedArray.h"
-#include <fstream>
 
-PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, string alg) {
+#include <stdexcept>
+
+
+PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, std::string alg) {
     this->outputFile = fopen(outputFilePath, "rb+");
     if (this->outputFile == NULL) {
-        printf("Error al abrir el archivo\n");
-        exit(1);
+        throw std::runtime_error("Error al abrir el archivo");
     }
     setvbuf(outputFile, NULL, _IOFBF, 1 << 20);
     this->pageSize = pageSize;
@@ -16,7 +17,7 @@ PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, string
     }
     usedPages = new int[this->pageCount]; //Indica cual numero de pagina hay en cada frame
     for (int i = 0; i<this->pageCount; i++) {
-        *(usedPages + i) = -1;
+        usedPages[i] = -1;
     }
     framesFull = false;
     this-> lastUsed = new long long[this->pageCount];
@@ -28,7 +29,7 @@ PagedArray::PagedArray(int pageSize, int pageCount, char* outputFilePath, string
     this->oldestFrame = 0;
     this->pageHits = 0;
     this->pageFaults = 0;
-    this->size = GetSize();
+    this->size = MeasureFile();
     int totalPages = (size + pageSize - 1) / pageSize;
     this->pageToFrame = new int[totalPages];
     for (int i = 0; i < totalPages; i++) {
@@ -89,7 +90,7 @@ int& PagedArray::PageFault(int page, int pageIndex) {
 int PagedArray::GetLRUFrame() {
     int frame = -1;
     for (int i = 0; i < pageCount; i++) {
-        if (usedPages[i] == -1) continue; // ignorar frames vacíos
+        if (usedPages[i] == -1) continue;
         if (frame == -1 || lastUsed[i] < lastUsed[frame]) {
             frame = i;
         }
@@ -106,15 +107,13 @@ int PagedArray::CalculateFreeFrame() {
             return i;
         }
     }
-    printf("Error al calcular frame\n");
     return -1;
 }
 
 void PagedArray::WriteFrame(int frame) {
     if (usedPages[frame] != -1){
-        int totalSize = size;
         int start = usedPages[frame] * pageSize;
-        int remaining = totalSize - start;
+        int remaining = size - start;
         int toWrite = (remaining > pageSize) ? pageSize : remaining;
         fseek(outputFile, start * sizeof(int), SEEK_SET);
         fwrite(frames[frame], sizeof(int), toWrite, outputFile);
@@ -124,9 +123,8 @@ void PagedArray::WriteFrame(int frame) {
 
 void PagedArray::LoadPage(int frameToLoadIn, int pageToLoad) {
     fseek(outputFile, pageToLoad * pageSize * sizeof(int), SEEK_SET);
-    int totalSize = size;
     int start = pageToLoad * pageSize;
-    int remaining = totalSize - start;
+    int remaining = size - start;
     int toRead = (remaining > pageSize) ? pageSize : remaining;
     size_t read = fread(frames[frameToLoadIn], sizeof(int), toRead, outputFile);
     for (int i = read; i < pageSize; i++) {
@@ -149,20 +147,24 @@ void PagedArray::WriteAllFrames() {
     }
 }
 
-int PagedArray::GetSize() {
+int PagedArray::MeasureFile() {
     long current = ftell(outputFile);
     fseek(outputFile, 0, SEEK_END);
-    int size = ftell(outputFile)/sizeof(int);
+    int fileSize = ftell(outputFile)/sizeof(int);
     fseek(outputFile, current, SEEK_SET);
-    return size;
+    return fileSize;
 }
 
-int PagedArray::GetPageFaults() {
+long long PagedArray::GetPageFaults() {
     return pageFaults;
 }
 
-int PagedArray::GetPageHits() {
+long long PagedArray::GetPageHits() {
     return pageHits;
+}
+
+int PagedArray::GetSize() {
+    return size;
 }
 
 PagedArray::~PagedArray() {
@@ -174,6 +176,8 @@ PagedArray::~PagedArray() {
     delete[] frames;
 
     delete[] usedPages;
+
+    delete[] pageToFrame;
 
     fclose(outputFile);
 }

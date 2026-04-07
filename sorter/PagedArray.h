@@ -5,8 +5,9 @@
 #ifndef SORTER_PAGEDARRAY_H
 #define SORTER_PAGEDARRAY_H
 
-#include <iostream>
-using namespace std;
+#include <string>
+#include <cstdio>
+#include <stdexcept>
 
 class PagedArray {
 private:
@@ -15,9 +16,8 @@ private:
     int pageSize;
     FILE* outputFile;
     int* usedPages;
-    int firstInPage = 0;
     bool framesFull;
-    int oldestFrame = 0;
+    int oldestFrame;
     int& PageHit(int frame, int pageIndex);
     int& PageFault(int page, int pageIndex);
     int CalculateFreeFrame();
@@ -25,22 +25,23 @@ private:
     void IncreaseOldestFrame();
     void LoadPage(int frameToLoadIn, int pageToLoad);
     void WriteFrame(int frame);
-    long long pageHits = 0;
-    long long pageFaults = 0;
+    long long pageHits;
+    long long pageFaults;
     long long* lastUsed;
-    long long time = 0;
-    string alg;
+    long long time;
+    std::string alg;
     int GetLRUFrame();
-    int GetSize();
+    int MeasureFile();
     int* pageToFrame;
+    int size;
 
 public:
-    PagedArray(int pageSize, int pageCount, char* outputFilePath, string alg);
+    PagedArray(int pageSize, int pageCount, char* outputFilePath, std::string alg);
     int& operator[](int index);
     void WriteAllFrames();
-    int size;
-    int GetPageHits();
-    int GetPageFaults();
+    int GetSize();
+    long long GetPageHits();
+    long long GetPageFaults();
     ~PagedArray();
 };
 
