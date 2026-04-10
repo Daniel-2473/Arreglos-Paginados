@@ -214,7 +214,7 @@ int CopyFile(char* oldRoute, char* newRoute) { //Copiar un archivo de una ruta a
 
 void RewriteBinaryFile(const string& fileRoute) { //Rescribir archivo binario en formato legible
     FILE* binaryFile = fopen(fileRoute.c_str(), "rb");  //Abrir archivo binario
-    size_t lastSlash = fileRoute.find_last_of('/'); //Busca el último slash
+    size_t lastSlash = fileRoute.find_last_of("/\\"); //Busca el último slash
     string outputPath;
     string fileName;
     if (lastSlash != string::npos) { //Si existe el slash separamos en dos
