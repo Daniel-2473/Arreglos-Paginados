@@ -195,52 +195,51 @@ void introSort(PagedArray& arr, int low, int high) {
     introsortUtil(arr, low, high, depthLimit);
 }
 
-int CopyFile(char* oldRoute, char* newRoute) {
-    FILE* oldFile = fopen(oldRoute, "rb");
+int CopyFile(char* oldRoute, char* newRoute) { //Copiar un archivo de una ruta a otra
+    FILE* oldFile = fopen(oldRoute, "rb"); //Abrir archivos
     FILE* newFile = fopen(newRoute, "wb");
     if (oldFile == NULL || newFile == NULL) {
         cout << "Error al abrir/crear el archivo de salida o entrada" << endl;
         return 1;
     }
-    char buffer[4096];
+    char buffer[4096]; //Buffer para escribir por partes
     size_t bytesRead = 0;
-    while ((bytesRead = fread(buffer, 1, sizeof(buffer), oldFile)) > 0) {
-        fwrite(buffer, 1, bytesRead, newFile);
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), oldFile)) > 0) { //Leemos y guardamos en el buffer un pedazo del arhivo hasta que ya no lea nada
+        fwrite(buffer, 1, bytesRead, newFile); //Escribe en el nuevo archivo los datos
     }
     fclose(oldFile);
     fclose(newFile);
     return 0;
 }
 
-void RewriteBinaryFile(const string& fileRoute) {
-    FILE* binaryFile = fopen(fileRoute.c_str(), "rb");
-
-    size_t lastSlash = fileRoute.find_last_of('/');
+void RewriteBinaryFile(const string& fileRoute) { //Rescribir archivo binario en formato legible
+    FILE* binaryFile = fopen(fileRoute.c_str(), "rb");  //Abrir archivo binario
+    size_t lastSlash = fileRoute.find_last_of('/'); //Busca el último slash
     string outputPath;
     string fileName;
-    if (lastSlash != string::npos) {
+    if (lastSlash != string::npos) { //Si existe el slash separamos en dos
         outputPath = fileRoute.substr(0, lastSlash + 1);
         fileName = fileRoute.substr(lastSlash + 1);
-    } else {
+    } else { //Si no, solo tomamos el nombre del archivo
         fileName = fileRoute;
     }
-    size_t lastDot = fileName.find_last_of('.');
+    size_t lastDot = fileName.find_last_of('.'); //Buscar el último punto (extensión del archivo)
     if (lastDot != std::string::npos) {
-        fileName = fileName.substr(0, lastDot);
+        fileName = fileName.substr(0, lastDot); //Obtener el nombre del archivo
     }
 
-    outputPath += "sorted" + fileName + ".txt";
+    outputPath += "sorted" + fileName + ".txt"; //Construir nombre del nuevo archivo
 
-    FILE* txtFile = fopen(outputPath.c_str(), "w");
+    FILE* txtFile = fopen(outputPath.c_str(), "w"); //Abrir archivo de salida
     if (!binaryFile || !txtFile) {
         cout << "Error abriendo archivos\n";
         return;
     }
     int value, first = 1;
-    while (fread(&value, sizeof(int), 1, binaryFile) == 1) {
-        if (!first) fprintf(txtFile, ",");
-        fprintf(txtFile, "%d", value);
-        first = 0;
+    while (fread(&value, sizeof(int), 1, binaryFile) == 1) { //Escribir valor por valor
+        if (!first) fprintf(txtFile, ","); //Evitar poner coma en el primer numero
+        fprintf(txtFile, "%d", value); //Escribir numero/valor
+        first = 0; //Marcar que ya se usó el primero
     }
     fclose(binaryFile);
     fclose(txtFile);
@@ -248,21 +247,21 @@ void RewriteBinaryFile(const string& fileRoute) {
 
 int sortFile(int args, char* argv[]) {
     cout<< "Copiando archivo"<<endl;
-    if (CopyFile(argv[2], argv[4]) != 0) {
+    if (CopyFile(argv[2], argv[4]) != 0) { //Copiar archivo
         return 1;
     }
-    PagedArray* arr;
-    if (args == 13) {
+    PagedArray* arr; //Crear instancia
+    if (args == 13) { //Si el usuario especifica el algortimo de remplazo
         try {
             arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], string(argv[12]));
-        } catch (const runtime_error& e) {
+        } catch (const runtime_error& e) { //En caso de ocurrir un error al crear la clase
             cout << e.what() << endl;
             return 1;
         }
     }
     else {
         try {
-            arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], "LRU");
+            arr = new PagedArray(stoi(argv[8]), stoi(argv[10]), argv[4], "LRU"); //Utilizar LRU por defecto
         } catch (const runtime_error& e) {
             cout << e.what() << endl;
             return 1;
@@ -300,7 +299,7 @@ int sortFile(int args, char* argv[]) {
     return 0;
 }
 
-int checkArgs(int args, char* argv[]) {
+int checkArgs(int args, char* argv[]) { //Validaciones
     if (args != 13 && args != 11) {
         cout << "Comando invalido" << endl;
         return 1;
@@ -328,7 +327,7 @@ int checkArgs(int args, char* argv[]) {
         cout << "Algoritmo invalido" << endl;
         return 1;
     }
-    if (args == 13) {
+    if (args == 13) { //Verifica si hay más argumentos, o sea, se especificó el algortimo de remplazo
         if (string(argv[11]) != "-algRemp") {
             cout << "formato invalido" << endl;
             return 1;
