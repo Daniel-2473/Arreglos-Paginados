@@ -7,14 +7,10 @@ A continuación se presentan las instrucciones para compilar y ejecutar cada pro
 - Sistema Linux o Windows con MinGW/WSL
 
 ## Notas para Windows
-
-- Si utiliza Windows, puede compilar usando MinGW o WSL.
-- El ejecutable generado será `sorter.exe` o `generator.exe`.
-- Se recomienda usar rutas con "/" en lugar de "\". Ya que Windows utiliza "\", no "/" como Linux.
-
-- Para ejecutar:
-
-.\sorter.exe -input ... 
+- Se puede compilar usando MinGW o WSL.
+- Se recomienda usar WSL ya que proporciona un entorno Linux completo.
+- Si usa MinGW, asegúrese de que g++ esté en el PATH del sistema.
+- El ejecutable generado será `sorter.exe` o `generator.exe` pero puede ejecutarse igual con `./sorter` o `./generator`.
 
 ## Compilar Generator
 
@@ -26,7 +22,7 @@ g++ -O3 main.cpp -o generator
 
 En la carpeta donde se encuentren los archivos ejecutar en terminal:
 ```bash
-g++ -O3 main.cpp PagedArray.cpp -o sorter
+g++ -O3 main.cpp PagedArray.cpp -o sorter -lm
 ```
 ## Ejecutar Generator
 
@@ -41,16 +37,15 @@ En la carpeta donde se generó el ejecutable ejecutar en terminal:
 
 En la carpeta donde se generó el ejecutable ejecutar en terminal:
 ```bash
-./sorter -input <INPUT FILE PATH> -output <OUTPUT FILE PATH> -alg
-<ALGORITMO> -pageSize <PAGE-SIZE> -pageCount <PAGE-COUNT>
+./sorter -input <INPUT FILE PATH> -output <OUTPUT FILE PATH> -alg <ALGORITMO> -pageSize <PAGE-SIZE> -pageCount <PAGE-COUNT>
 ```
 <INPUT FILE PATH> y <OUTPUT FILE PATH> pueden ser cualquier directorio válido, siempre que especifiquen el archivo a utilizar.
 
-<ALGORITMO> puede escoger: "QUICK", "MERGE", "INTRO", "HEAP" o "SHELL"
+<ALGORITMO> puede escoger: "Quick", "Merge", "Intro", "Heap" o "Shell"
 
 <PAGE-SIZE> y <PAGE-COUNT> pueden ser cualquier número entero positivo.
 
-Se recomienda ejecutar el programa utilizando QUICK, MERGE o INTRO, estos algoritmos son los que mejor tiempo de ejecución poseen.
+Se recomienda ejecutar el programa utilizando Quick, Merge o Intro, estos algoritmos son los que mejor tiempo de ejecución poseen.
 
 ### Cambiar el algoritmo de reemplazo
 
