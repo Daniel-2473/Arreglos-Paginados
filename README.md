@@ -10,9 +10,11 @@ A continuación se presentan las instrucciones para compilar y ejecutar cada pro
 
 - Si utiliza Windows, puede compilar usando MinGW o WSL.
 - El ejecutable generado será `sorter.exe` o `generator.exe`.
+- Se recomienda usar rutas con "/" en lugar de "\". Ya que Windows utiliza "\", no "/" como Linux.
+
 - Para ejecutar:
 
-sorter.exe -input ... (Tiene el mismo formato, solo sin utilizar ./).
+.\sorter.exe -input ... 
 
 ## Compilar Generator
 
